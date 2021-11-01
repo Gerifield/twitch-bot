@@ -7,7 +7,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/gerifield/twitch-bot/bot"
+
 	bolt "go.etcd.io/bbolt"
 	"gopkg.in/irc.v3"
 )
@@ -31,6 +32,8 @@ func main() {
 		return
 	}
 
+	b := bot.New(db)
+
 	config := irc.ClientConfig{
 		Nick: *botName,
 		Pass: *token,
@@ -47,30 +50,14 @@ func main() {
 					return
 				}
 
-				if strings.ToLower(msgs[0]) == "!ötlet" {
-					// Save idea
-					idea := strings.Join(msgs[1:], " ")
-					fmt.Println("Otlet:", idea)
+				if !strings.HasPrefix(msgs[0], "!") {
+					return
+				}
 
-					err = db.Update(func(tx *bolt.Tx) error {
-						b, err := tx.CreateBucketIfNotExists([]byte("ideas"))
-						if err != nil {
-							return err
-						}
-
-						id, err := uuid.NewUUID()
-						if err != nil {
-							return err
-						}
-
-						log.Printf("Save idea with ID %s, %s", id.String(), idea)
-						err = b.Put([]byte(id.String()), []byte(idea))
-						return err
-					})
-					if err != nil {
-						log.Println(err)
-						return
-					}
+				err = b.Handler(msgs[0], msgs[1:])
+				if err != nil {
+					log.Println(err)
+					return
 				}
 			}
 		}),
