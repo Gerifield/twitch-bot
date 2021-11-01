@@ -2,22 +2,24 @@ package bot
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/google/uuid"
-	bolt "go.etcd.io/bbolt"
 )
+
+type IdeaSaver interface {
+	Save(id string, text string) error
+}
 
 // Bot .
 type Bot struct {
-	db *bolt.DB
+	ideaSaver IdeaSaver
 }
 
 // New .
-func New(db *bolt.DB) *Bot {
+func New(ideaSaver IdeaSaver) *Bot {
 	return &Bot{
-		db: db,
+		ideaSaver: ideaSaver,
 	}
 }
 
@@ -26,32 +28,18 @@ func (b *Bot) Handler(command string, params []string) error {
 
 	switch command {
 	case "!ötlet":
-		b.handleIdea(strings.Join(params[:], " "))
+		return b.handleIdea(strings.Join(params[:], " "))
 	}
 
 	return nil
 }
 
-func (b *Bot) handleIdea(idea string) {
+func (b *Bot) handleIdea(idea string) error {
 	fmt.Println("Otlet:", idea)
-
-	err := b.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("ideas"))
-		if err != nil {
-			return err
-		}
-
-		id, err := uuid.NewUUID()
-		if err != nil {
-			return err
-		}
-
-		log.Printf("Save idea with ID %s, %s", id.String(), idea)
-		err = b.Put([]byte(id.String()), []byte(idea))
-		return err
-	})
+	id, err := uuid.NewUUID()
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
+
+	return b.ideaSaver.Save(id.String(), idea)
 }

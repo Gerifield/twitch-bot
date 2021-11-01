@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gerifield/twitch-bot/bot"
+	"github.com/gerifield/twitch-bot/db"
 
 	bolt "go.etcd.io/bbolt"
 	"gopkg.in/irc.v3"
@@ -19,12 +20,12 @@ func main() {
 	token := flag.String("token", "", "Twitch oauth token")
 	flag.Parse()
 
-	db, err := bolt.Open("my.db", 0600, nil)
+	b, err := bolt.Open("my.db", 0600, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	defer func() { _ = db.Close() }()
+	defer func() { _ = b.Close() }()
 
 	conn, err := net.Dial("tcp", "irc.chat.twitch.tv:6667")
 	if err != nil {
@@ -32,7 +33,7 @@ func main() {
 		return
 	}
 
-	b := bot.New(db)
+	myBot := bot.New(db.New(b))
 
 	config := irc.ClientConfig{
 		Nick: *botName,
@@ -54,7 +55,7 @@ func main() {
 					return
 				}
 
-				err = b.Handler(msgs[0], msgs[1:])
+				err = myBot.Handler(msgs[0], msgs[1:])
 				if err != nil {
 					log.Println(err)
 					return
