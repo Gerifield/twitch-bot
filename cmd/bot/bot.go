@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"gopkg.in/irc.v3"
 )
@@ -30,14 +31,20 @@ func main() {
 			fmt.Println(m)
 			if m.Command == "001" {
 				// 001 is a welcome event, so we join channels there
-				c.Write("JOIN #" + *channelName)
+				_ = c.Write("JOIN #" + *channelName)
 			} else if m.Command == "PRIVMSG" && c.FromChannel(m) {
 
-				fmt.Println(m)
-				fmt.Println(m.Params)
-				fmt.Println("Msg:", m.Trailing())
-				fmt.Println(m.String())
+				msgs := strings.Split(m.Trailing(), " ")
 
+				if len(msgs) < 2 {
+					return
+				}
+
+				if strings.ToLower(msgs[0]) == "!ötlet" {
+					// Save idea
+					idea := strings.Join(msgs[1:], " ")
+					fmt.Println("Otlet:", idea)
+				}
 			}
 		}),
 	}
