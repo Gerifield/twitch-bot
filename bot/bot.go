@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -35,7 +34,7 @@ func (b *Bot) Handler(command string, params []string) error {
 }
 
 func (b *Bot) handleIdea(idea string) error {
-	fmt.Println("Otlet:", idea)
+	// fmt.Println("Otlet:", idea)
 	id, err := uuid.NewUUID()
 	if err != nil {
 		return err
