@@ -1,44 +1,36 @@
 package bot
 
-import (
-	"strings"
+import "errors"
 
-	"github.com/google/uuid"
-)
-
-type IdeaSaver interface {
-	Save(id string, text string) error
-}
+// Handler .
+type Handler func([]string) (string, error)
 
 // Bot .
 type Bot struct {
-	ideaSaver IdeaSaver
+	commands map[string]Handler
 }
 
+var (
+	ErrNotFound = errors.New("command not found")
+)
+
 // New .
-func New(ideaSaver IdeaSaver) *Bot {
+func New() *Bot {
 	return &Bot{
-		ideaSaver: ideaSaver,
+		commands: make(map[string]Handler),
 	}
+}
+
+func (b *Bot) Register(command string, handler Handler) {
+	b.commands[command] = handler
 }
 
 // Handler .
-func (b *Bot) Handler(command string, params []string) error {
-
-	switch command {
-	case "!ötlet":
-		return b.handleIdea(strings.Join(params[:], " "))
+func (b *Bot) Handler(command string, params []string) (string, error) {
+	h, ok := b.commands[command]
+	if !ok {
+		return "", ErrNotFound
 	}
 
-	return nil
-}
-
-func (b *Bot) handleIdea(idea string) error {
-	// fmt.Println("Otlet:", idea)
-	id, err := uuid.NewUUID()
-	if err != nil {
-		return err
-	}
-
-	return b.ideaSaver.Save(id.String(), idea)
+	return h(params)
 }
