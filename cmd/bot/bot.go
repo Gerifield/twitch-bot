@@ -9,6 +9,7 @@ import (
 	"github.com/gerifield/twitch-bot/bot"
 	"github.com/gerifield/twitch-bot/command/kappa"
 	"github.com/gerifield/twitch-bot/command/vods"
+	"github.com/gerifield/twitch-bot/model"
 	"github.com/gerifield/twitch-bot/twitch"
 
 	"gopkg.in/irc.v3"
@@ -55,16 +56,13 @@ func main() {
 				_ = c.Write("JOIN #" + *channelName)
 
 			} else if m.Command == "PRIVMSG" && c.FromChannel(m) {
-				msgs := strings.Split(m.Trailing(), " ")
-				if len(msgs) < 1 {
+				msg := model.ParseMessage(m)
+
+				if !strings.HasPrefix(msg.Command(), "!") {
 					return
 				}
 
-				if !strings.HasPrefix(msgs[0], "!") {
-					return
-				}
-
-				resp, err := myBot.Handler(msgs[0], msgs[1:])
+				resp, err := myBot.Handler(msg)
 				if err != nil {
 					log.Println(err)
 				}

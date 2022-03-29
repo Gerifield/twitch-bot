@@ -1,9 +1,13 @@
 package bot
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/gerifield/twitch-bot/model"
+)
 
 // Handler .
-type Handler func([]string) (string, error)
+type Handler func(*model.Message) (string, error)
 
 // Bot .
 type Bot struct {
@@ -26,11 +30,11 @@ func (b *Bot) Register(command string, handler Handler) {
 }
 
 // Handler .
-func (b *Bot) Handler(command string, params []string) (string, error) {
-	h, ok := b.commands[command]
+func (b *Bot) Handler(msg *model.Message) (string, error) {
+	h, ok := b.commands[msg.Command()]
 	if !ok {
 		return "", ErrNotFound
 	}
 
-	return h(params)
+	return h(msg)
 }
