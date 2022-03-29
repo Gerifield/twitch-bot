@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gerifield/twitch-bot/bot"
+	"github.com/gerifield/twitch-bot/command/jatek"
 	"github.com/gerifield/twitch-bot/command/kappa"
 	"github.com/gerifield/twitch-bot/command/vods"
 	"github.com/gerifield/twitch-bot/model"
@@ -18,6 +19,7 @@ import (
 func regCommands(b *bot.Bot) {
 	b.Register("!vod", vods.Handle)
 	b.Register("!kappa", kappa.Handle)
+	b.Register("!jatek", jatek.Handle)
 }
 
 func main() {
@@ -52,7 +54,13 @@ func main() {
 			log.Println("incoming message", m)
 
 			if m.Command == "001" {
-				// 001 is a welcome event, so we join channels there
+				// 001 is a welcome event
+
+				// We request for additional informations/tags
+				// It is needed to have display name for the user and some extra data
+				_ = c.Write("CAP REQ :twitch.tv/tags")
+
+				// We JOIN the given channel
 				_ = c.Write("JOIN #" + *channelName)
 
 			} else if m.Command == "PRIVMSG" && c.FromChannel(m) {
