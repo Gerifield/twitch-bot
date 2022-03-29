@@ -2,14 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net"
 	"strings"
 
 	"github.com/gerifield/twitch-bot/bot"
 	"github.com/gerifield/twitch-bot/command/jatek"
-	"github.com/gerifield/twitch-bot/command/kappa"
-	"github.com/gerifield/twitch-bot/command/vods"
 	"github.com/gerifield/twitch-bot/model"
 	"github.com/gerifield/twitch-bot/twitch"
 
@@ -17,14 +16,14 @@ import (
 )
 
 func regCommands(b *bot.Bot) {
-	b.Register("!vod", vods.Handle)
-	b.Register("!kappa", kappa.Handle)
+	// b.Register("!vod", vods.Handle)
+	// b.Register("!kappa", kappa.Handle)
 	b.Register("!jatek", jatek.Handle)
 }
 
 func main() {
 	channelName := flag.String("channel", "gerifield", "Twitch channel name")
-	botName := flag.String("botName", "suba", "Bot name")
+	botName := flag.String("botName", "CoderBot42", "Bot name")
 	clientID := flag.String("clientID", "", "Twitch App ClientID")
 	clientSecret := flag.String("clientSecret", "", "Twitch App clientSecret")
 	flag.Parse()
@@ -56,12 +55,10 @@ func main() {
 			if m.Command == "001" {
 				// 001 is a welcome event
 
-				// We request for additional informations/tags
-				// It is needed to have display name for the user and some extra data
-				_ = c.Write("CAP REQ :twitch.tv/tags")
-
 				// We JOIN the given channel
 				_ = c.Write("JOIN #" + *channelName)
+			} else if m.Command == "PING" { // Handle occasional PINGs
+				fmt.Println("PING HANDLED", c.Write("PONG :tmi.twitch.tv"))
 
 			} else if m.Command == "PRIVMSG" && c.FromChannel(m) {
 				msg := model.ParseMessage(m)
@@ -93,6 +90,8 @@ func main() {
 
 	// Create the client
 	client := irc.NewClient(conn, config)
+	client.CapRequest("twitch.tv/tags", true)     // Ask for tags
+	client.CapRequest("twitch.tv/commands", true) // Ask for Twitch specific commands
 	err = client.Run()
 	if err != nil {
 		log.Println(err)
