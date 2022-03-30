@@ -1,38 +1,44 @@
 package bot
 
-import (
-	"errors"
-	"testing"
+// import (
+// 	"errors"
+// 	"testing"
 
-	"github.com/stretchr/testify/assert"
-)
+// 	"github.com/stretchr/testify/assert"
+// )
 
-func TestHandleIdeaSuccess(t *testing.T) {
-	ts := &testSaver{}
-	b := New(ts)
+// func TestCommandRegister(t *testing.T) {
+// 	b := New()
 
-	assert.NoError(t, b.handleIdea("nagyon fasza otlet"))
-	assert.NotEmpty(t, ts.paramID)
-	assert.Equal(t, "nagyon fasza otlet", ts.paramText)
-}
+// 	b.Register("cmd1", nil)
+// 	b.Register("cmd2", nil)
+// 	b.Register("cmd2", nil)
 
-func TestHandleIdeaFail(t *testing.T) {
-	testErr := errors.New("test error")
-	ts := &testSaver{retError: testErr}
-	b := New(ts)
+// 	assert.Len(t, b.commands, 2)
+// }
 
-	assert.Equal(t, testErr, b.handleIdea("nagyon fasza otlet"))
-}
+// func TestCommandHandlerFound(t *testing.T) {
+// 	b := New()
 
-type testSaver struct {
-	paramID   string
-	paramText string
+// 	testError := errors.New("test error")
+// 	var called bool
 
-	retError error
-}
+// 	b.Register("cmd1", nil)
+// 	b.Register("cmd2", nil)
+// 	b.Register("cmd2", func([]string) (string, error) {
+// 		called = true
+// 		return "resp1", testError
+// 	})
 
-func (ts *testSaver) Save(id string, text string) error {
-	ts.paramID = id
-	ts.paramText = text
-	return ts.retError
-}
+// 	assert.Len(t, b.commands, 2)
+
+// 	resp, err := b.Handler("cmd666", nil)
+// 	assert.Equal(t, "", resp)
+// 	assert.Equal(t, ErrNotFound, err)
+
+// 	assert.False(t, called)
+// 	resp, err = b.Handler("cmd2", nil)
+// 	assert.Equal(t, "resp1", resp)
+// 	assert.Equal(t, testError, err)
+// 	assert.True(t, called)
+// }
